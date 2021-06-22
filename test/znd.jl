@@ -1,6 +1,7 @@
 using PyCall
 using SDtoolbox
-ct = pyimport("cantera")
+ct = pyimport_conda("cantera","cantera","cantera")
+pushfirst!(PyVector(pyimport("sys")."path"), "") # adds local dir to python path
 postshock = pyimport("sdtoolbox.postshock")
 CJspeed = postshock.CJspeed
 Postshock_fr = postshock.PostShock_fr

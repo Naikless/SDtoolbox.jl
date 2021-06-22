@@ -1,6 +1,6 @@
 using PyCall
 using SDtoolbox
-ct = pyimport("cantera")
+ct = pyimport_conda("cantera","cantera","cantera")
 using Plots
 
 P₁ = 2e5

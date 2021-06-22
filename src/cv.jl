@@ -37,7 +37,7 @@ export cvsolve
 
 using DifferentialEquations
 using PyCall
-ct = pyimport("cantera")
+ct = pyimport_conda("cantera","cantera","cantera")
 
 const R̄ = ct.gas_constant::Float64
 
