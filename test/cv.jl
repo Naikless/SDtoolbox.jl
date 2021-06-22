@@ -1,4 +1,5 @@
 using PyCall
+using SDtoolbox
 ct = pyimport("cantera")
 using Plots
 
@@ -14,7 +15,7 @@ T₁ = 1500
     gas = ct.Solution(mech)::PyObject
     gas.TPX = T₁,P₁,X₁
 
-    out = CV.cvsolve(gas,t_end=1e-3)
+    out = cvsolve(gas,t_end=1e-3)
 
     plot!(out["time"],out["T"])
 # end

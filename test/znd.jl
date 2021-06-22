@@ -1,4 +1,5 @@
 using PyCall
+using SDtoolbox
 ct = pyimport("cantera")
 postshock = pyimport("sdtoolbox.postshock")
 CJspeed = postshock.CJspeed
@@ -21,7 +22,7 @@ T₁ = 300
 
     gas = Postshock_fr(U₁, P₁, T₁, X₁, mech)::PyObject
 
-    out = ZND.zndsolve(gas,gas₁,U₁,advanced_output=true)
+    out = zndsolve(gas,gas₁,U₁,advanced_output=true)
 
     plot!(out["time"],out["thermicity"])
 # end
