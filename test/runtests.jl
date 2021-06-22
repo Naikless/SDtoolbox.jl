@@ -2,5 +2,6 @@ using SDtoolbox
 using Test
 
 @testset "SDtoolbox.jl" begin
-    # Write your tests here.
+    include("cv.jl")
+    include("znd.jl")
 end
