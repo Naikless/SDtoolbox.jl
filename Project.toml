@@ -3,6 +3,9 @@ uuid = "5bc79f6f-357f-4b0b-8579-c2462dcf5d50"
 authors = ["Niclas Garan"]
 version = "0.1.0"
 
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+
 [compat]
 julia = "1"
 
