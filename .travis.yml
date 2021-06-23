@@ -1,0 +1,14 @@
+language: julia
+
+os:
+  - linux
+  - osx
+  - windows
+
+julia:
+  - 1.0
+  - 1.6
+  - nightly
+
+script:
+  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test("Sdtoolbox"; coverage=true)'
