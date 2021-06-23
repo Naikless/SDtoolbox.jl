@@ -2,13 +2,13 @@
  Shock and Detonation Toolbox
  http://www.galcit.caltech.edu/EDL/PublicResources/SDT/
 '''
-import sdtoolbox_.postshock
-import sdtoolbox_.reflections
-import sdtoolbox_.thermo
-import sdtoolbox_.cv
-import sdtoolbox_.cp
-import sdtoolbox_.znd
-import sdtoolbox_.stagnation
+import sdtoolbox.postshock
+import sdtoolbox.reflections
+import sdtoolbox.thermo
+import sdtoolbox.cv
+import sdtoolbox.cp
+import sdtoolbox.znd
+import sdtoolbox.stagnation
 
-import sdtoolbox_.config
-import sdtoolbox_.utilities
+import sdtoolbox.config
+import sdtoolbox.utilities
