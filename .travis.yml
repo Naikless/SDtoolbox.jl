@@ -2,7 +2,6 @@ language: julia
 
 os:
   - linux
-  - osx
 
 julia:
   - 1.0
@@ -13,4 +12,4 @@ script:
   - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test("SDtoolbox"; coverage=true)'
 
 before_install:
-  - julia -e 'import Pkg; Pkg.add("Conda"); import Conda; Conda.add_channel("cantera"); Conda.add("cantera")'
+  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.add("PyCall"); import PyCall; PyCall.pyimport_conda("cantera","cantera","cantera")'
