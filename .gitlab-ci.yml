@@ -18,10 +18,10 @@
   script:
     # Let's run the tests. Substitute `coverage = false` below, if you do not
     # want coverage results.
-    - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("MyPackage"); Pkg.test("MyPackage"; coverage = true)'
+    - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("SDtoolbox"); Pkg.test("SDtoolbox"; coverage = true)'
     # Comment out below if you do not want coverage results.
     - julia -e 'using Pkg; Pkg.add("Coverage");
-      import MyPackage; cd(joinpath(dirname(pathof(MyPackage)), ".."));
+      import SDtoolbox; cd(joinpath(dirname(pathof(SDtoolbox)), ".."));
       using Coverage; cl, tl = get_summary(process_folder());
       println("(", cl/tl*100, "%) covered")'
 
