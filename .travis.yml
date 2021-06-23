@@ -11,4 +11,4 @@ julia:
   - nightly
 
 script:
-  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test("Sdtoolbox"; coverage=true)'
+  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test("SDtoolbox"; coverage=true)'
