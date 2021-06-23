@@ -12,4 +12,4 @@ script:
   - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test("SDtoolbox"; coverage=true)'
 
 before_install:
-  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.add("PyCall"); import PyCall; PyCall.pyimport_conda("cantera","cantera","cantera")'
+  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.add("PyCall"); ENV["PYTHON"]=""; Pkg.build("PyCall")'
