@@ -13,4 +13,4 @@ script:
   - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test("SDtoolbox"; coverage=true)'
 
 before_install:
-  - julia -e 'import Pkg; Pkg.add(Conda); import Conda; Conda.add_channel("cantera"); Conda.add("cantera")'
+  - julia -e 'import Pkg; Pkg.add("Conda"); import Conda; Conda.add_channel("cantera"); Conda.add("cantera")'
