@@ -4,7 +4,7 @@ ct = pyimport_conda("cantera","cantera","cantera")
 pushfirst!(PyVector(pyimport("sys")."path"), "") # adds local dir to python path
 postshock = pyimport("sdtoolbox.postshock")
 CJspeed = postshock.CJspeed
-Postshock_fr = postshock.PostShock_fr
+PostShock_fr = postshock.PostShock_fr
 using Plots
 
 P₁ = 1e5
@@ -21,7 +21,7 @@ T₁ = 300
 
     U₁ = CJspeed(P₁,T₁,X₁,mech)::Float64
 
-    gas = Postshock_fr(U₁, P₁, T₁, X₁, mech)::PyObject
+    gas = PostShock_fr(U₁, P₁, T₁, X₁, mech)::PyObject
 
     out = zndsolve(gas,gas₁,U₁,advanced_output=true)
 
