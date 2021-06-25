@@ -47,7 +47,7 @@ function __init__()
 end
 
 
-function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Float64)::Vector{Float64}
+function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Float64}
     """
     Evaluates the system of ordinary differential equations for an adiabatic,
     constant-volume, zero-dimensional reactor.
@@ -65,7 +65,7 @@ function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Float64)::Vector{F
 
     """
     # current gas state and constant parameters
-    gas::PyObject,ρ₁::Float64,Mᵢ::Vector{Float64},hₛ_RT::Vector{Float64} = params
+    gas::PyObject,ρ₁::Real,Mᵢ::Vector{Float64},hₛ_RT::Vector{Float64} = params
 
     # make sure physical bounds are respected to avoid cantera errors
     if y[1] >= 0
@@ -88,8 +88,8 @@ function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Float64)::Vector{F
 end
 
 
-function cvsolve(gas::PyObject;t_end::Float64=1e-6,max_step::Float64=1e-5,
-                t_eval=nothing,relTol::Float64=1e-5,absTol::Float64=1e-8)
+function cvsolve(gas::PyObject;t_end::Real=1e-6,max_step::Real=1e-5,
+                t_eval=nothing,relTol::Real=1e-5,absTol::Real=1e-8)
     """
     Solves the ODE system defined in cv!, taking the gas object input as the
     initial state.
@@ -139,7 +139,7 @@ function cvsolve(gas::PyObject;t_end::Float64=1e-6,max_step::Float64=1e-5,
     T_ad = gas.T::Float64
     gas.state = old_state
 
-    function approaches_equilibrium(y::Vector{Float64},t::Float64,integrator)
+    function approaches_equilibrium(y::Vector{Float64},t::Real,integrator)
         """ Returns true if T >= 0.999 * T_ad """
         if y[1] >= 0.999*T_ad && get_du(integrator)[1] <= 1e-6
             println("Reached thermal equilibrium. Terminating!")

@@ -100,7 +100,7 @@ function soundspeed_fr(gas::PyObject)
     return a_frz
 end
 
-function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Number)::Vector{Float64}
+function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Float64}
     """
     Set of ODEs to solve ZND Detonation Problem.
 
@@ -118,7 +118,7 @@ function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Number)::Vector{F
 
     """
     # current gas state and constant parameters
-    gas::PyObject,U₁::Float64,ρ₁::Float64,Mᵢ::Vector{Float64},hₛ_RT::Vector{Float64} = params[1:5]
+    gas::PyObject,U₁::Real,ρ₁::Real,Mᵢ::Vector{Float64},hₛ_RT::Vector{Float64} = params[1:5]
 
     # make sure physical bounds are respected to avoid cantera errors
     if !any(y[1:2].<=0)
@@ -199,8 +199,8 @@ function getThermicity(gas::PyObject)
 end
 
 function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
-             t_end::Float64=1e-3,max_step::Float64=1e-4,t_eval=nothing,
-             relTol::Float64=1e-5,absTol::Float64=1e-8,
+             t_end::Real=1e-3,max_step::Real=1e-4,t_eval=nothing,
+             relTol::Real=1e-5,absTol::Real=1e-8,
              advanced_output::Bool=false)
     """
     ZND Model Detonation Computation
