@@ -41,9 +41,16 @@ export zndsolve
 
 using DifferentialEquations
 using PyCall
-ct = pyimport_conda("cantera","cantera","cantera")
 
-const R̄ = ct.gas_constant::Float64
+
+const ct = PyNULL()
+
+function __init__()
+    copy!(ct, pyimport_conda("cantera","cantera","cantera"))
+    global R̄ = ct.gas_constant
+end
+
+
 U1 = nothing
 gas1 = nothing
 ρ₁ = nothing
@@ -191,7 +198,7 @@ function getThermicity(gas::PyObject)
     σ̇ = sum((M̄ ./ Mᵢ - hₛ/(cₚ*T)).*dydt)
 end
 
-function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Float64;
+function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
              t_end::Float64=1e-3,max_step::Float64=1e-4,t_eval=nothing,
              relTol::Float64=1e-5,absTol::Float64=1e-8,
              advanced_output::Bool=false)

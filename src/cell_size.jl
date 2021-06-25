@@ -1,15 +1,10 @@
-using SDtoolbox
+# to be able to run this standalone via include()
 using PyCall
-ct = pyimport_conda("cantera","cantera","cantera")
-pushfirst!(PyVector(pyimport("sys")."path"), "") # adds local dir to python path
-postshock = pyimport("sdtoolbox.postshock")
-CJspeed = postshock.CJspeed
-PostShock_fr = postshock.PostShock_fr
-PostShock_eq = postshock.PostShock_eq
+import SDtoolbox: zndsolve, cvsolve, CJspeed, PostShock_fr, PostShock_eq, ct
 
 include("correlations.jl")
 
-function cell_size(T₁::Real,P₁::Real,X₁::Union{AbstractString,AbstractDict},mech::AbstractString)
+function cell_size(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech)
 
     # Find CJ speed
     cj_speed = CJspeed(P₁,T₁,X₁,mech)::Float64
@@ -32,17 +27,17 @@ function cell_size(T₁::Real,P₁::Real,X₁::Union{AbstractString,AbstractDict
     # Find CV parameters including effective activation energy
     T₊ = Tₛ*1.02
     gas.TPX = T₊,Pₛ,X₁
-    CV_out₊ = cvsolve(gas)
+    CV_out₊ = cvsolve(gas)::AbstractDict
     T₋ = Tₛ*0.98
     gas.TPX = T₋,Pₛ,X₁
-    CV_out₋ = cvsolve(gas)
+    CV_out₋ = cvsolve(gas)::AbstractDict
     # Approximate effective activation energy for CV explosion
     τ₊ = CV_out₊["ind_time"]
     τ₋ = CV_out₋["ind_time"]
-    if τ₊ == 0 && τ₋ == 0
-        θₑ_CV = 0
+    if τ₊ == zero(τ₊) && τ₋ == zero(τ₋)
+        θₑ_CV = 0.0
     else
-        θₑ_CV = 1/Tₛ*((log(τ₊)-log(τ₋))/((1/T₊)-(1/T₋)))
+        θₑ_CV = 1.0/Tₛ*((log(τ₊)-log(τ₋))/((1.0/T₊)-(1.0/T₋)))
     end
 
     Δᵣ = u_cj / out["max_thermicity_ZND"]
@@ -50,5 +45,5 @@ function cell_size(T₁::Real,P₁::Real,X₁::Union{AbstractString,AbstractDict
     χ = θₑ_CV * Δᵢ / Δᵣ
 
     # obtain cell size through correlation
-    λ = ng(Δᵢ,χ)
+    λ = ng(Δᵢ,χ)::Float64
 end

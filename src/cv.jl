@@ -37,9 +37,14 @@ export cvsolve
 
 using DifferentialEquations
 using PyCall
-ct = pyimport_conda("cantera","cantera","cantera")
 
-const R̄ = ct.gas_constant::Float64
+
+const ct = PyNULL()
+
+function __init__()
+    copy!(ct, pyimport_conda("cantera","cantera","cantera"))
+    global R̄ = ct.gas_constant
+end
 
 
 function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Float64)::Vector{Float64}
@@ -137,7 +142,7 @@ function cvsolve(gas::PyObject;t_end::Float64=1e-6,max_step::Float64=1e-5,
     function approaches_equilibrium(y::Vector{Float64},t::Float64,integrator)
         """ Returns true if T >= 0.999 * T_ad """
         if y[1] >= 0.999*T_ad && get_du(integrator)[1] <= 1e-6
-            println("Reached thermal equilibrium. Aborting!")
+            println("Reached thermal equilibrium. Terminating!")
             return true
         else
             return false

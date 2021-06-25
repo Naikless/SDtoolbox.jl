@@ -1,10 +1,4 @@
-using PyCall
-using SDtoolbox
-ct = pyimport_conda("cantera","cantera","cantera")
-pushfirst!(PyVector(pyimport("sys")."path"), "") # adds local dir to python path
-postshock = pyimport("sdtoolbox.postshock")
-CJspeed = postshock.CJspeed
-PostShock_fr = postshock.PostShock_fr
+import SDtoolbox: ct, PostShock_fr, CJspeed, zndsolve
 using Plots
 
 P₁ = 1e5
