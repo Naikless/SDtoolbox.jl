@@ -4,7 +4,7 @@ import SDtoolbox: zndsolve, cvsolve, CJspeed, PostShock_fr, PostShock_eq, ct
 
 include("correlations.jl")
 
-function cell_size(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech)
+function cell_size(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwargs...)
 
     # Find CJ speed
     cj_speed = CJspeed(P₁,T₁,X₁,mech)::Float64
@@ -22,15 +22,15 @@ function cell_size(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech)
     Tₛ,Pₛ = gas.TP::Tuple{Float64, Float64}
 
     # Solve ZND ODEs
-    out = zndsolve(gas,gas₁,cj_speed,advanced_output=true)::AbstractDict
+    out = zndsolve(gas,gas₁,cj_speed,advanced_output=true;kwargs...)::AbstractDict
 
     # Find CV parameters including effective activation energy
     T₊ = Tₛ*1.02
     gas.TPX = T₊,Pₛ,X₁
-    CV_out₊ = cvsolve(gas)::AbstractDict
+    CV_out₊ = cvsolve(gas;kwargs...)::AbstractDict
     T₋ = Tₛ*0.98
     gas.TPX = T₋,Pₛ,X₁
-    CV_out₋ = cvsolve(gas)::AbstractDict
+    CV_out₋ = cvsolve(gas;kwargs...)::AbstractDict
     # Approximate effective activation energy for CV explosion
     τ₊ = CV_out₊["ind_time"]
     τ₋ = CV_out₋["ind_time"]
