@@ -260,6 +260,7 @@ function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
     ###########################################################
     # Define initial information
     ###########################################################
+    println("starting znd solver")
     global gas1 = gas₁
     global U1 = U₁
     global ρ₁ = gas₁.density::Float64

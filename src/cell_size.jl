@@ -8,6 +8,7 @@ function cell_size(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwarg
 
     # Find CJ speed
     cj_speed = CJspeed(P₁,T₁,X₁,mech)::Float64
+    println("CJ velocity: $(round(cj_speed,digits=3)) m/s")
 
     # Set up gas object
     gas₁ = ct.Solution(mech)::PyObject
@@ -16,10 +17,12 @@ function cell_size(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwarg
     # Find equilibrium post shock state for given speed
     gas = PostShock_eq(cj_speed, P₁, T₁, X₁, mech)::PyObject
     u_cj = cj_speed*gas₁.density/gas.density
+    println("u_CJ: $(round(u_cj,digits=3)) m/s")
 
     # Find frozen post shock state for given speed
     gas = PostShock_fr(cj_speed, P₁, T₁, X₁, mech)::PyObject
     Tₛ,Pₛ = gas.TP::Tuple{Float64, Float64}
+    println("Tₛ: $(round(Tₛ,digits=3)), Pₛ: $(round(Pₛ,digits=3))")
 
     # Solve ZND ODEs
     out = zndsolve(gas,gas₁,cj_speed,advanced_output=true;kwargs...)::AbstractDict
