@@ -2,10 +2,12 @@ module SDtoolbox
 
 export zndsolve, cvsolve, cell_size
 
+include("postshock.jl")
 include("cv.jl")
 include("znd.jl")
 
 # submodules that are essentially standalone
+using .Postshock
 using .CV
 using .ZND
 
@@ -14,20 +16,10 @@ using .ZND
 using PyCall
 
 const ct = PyNULL()
-const postshock = PyNULL()
-const CJspeed = PyNULL()
-const PostShock_fr = PyNULL()
-const PostShock_eq = PyNULL()
 
 function __init__()
+    # load cantera python package
     copy!(ct, pyimport_conda("cantera","cantera","cantera"))
-
-    # adds package dir to python path
-    pushfirst!(PyVector(pyimport("sys")."path"), pkgdir(SDtoolbox))
-    copy!(postshock, pyimport("sdtoolbox.postshock"))
-    copy!(CJspeed, postshock.CJspeed)
-    copy!(PostShock_fr, postshock.PostShock_fr)
-    copy!(PostShock_eq, postshock.PostShock_eq)
 end
 
 include("cell_size.jl")
