@@ -201,7 +201,7 @@ end
 function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
              t_end::Real=1e-3,max_step::Real=1e-4,t_eval=nothing,
              relTol::Real=1e-5,absTol::Real=1e-8,
-             advanced_output::Bool=false)
+             advanced_output::Bool=false, timeout_value::Real=30)
     """
     ZND Model Detonation Computation
     Solves the set of ODEs defined in znd!().
@@ -271,7 +271,7 @@ function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
     global Mᵢ = gas.molecular_weights::Vector{Float64}
     global hₛ_RT = gas.standard_enthalpies_RT::Vector{Float64}
 
-    params = [gas,U₁,ρ₁,Mᵢ,hₛ_RT,0.]
+    params = [gas,U₁,ρ₁,Mᵢ,hₛ_RT,time_ns()+timeout_value*1e9,0.0]
 
     tel = [0.,t_end] # Timespan
 
@@ -285,13 +285,33 @@ function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
         end
     end
 
+    function timeout(y::Vector{Float64},t::Float64,integrator)
+        """ aborts calculation if solver takes too long """
+        if time_ns() - integrator.p[end-1] > 0
+            println("Timeout reached!")
+            return true
+        else
+            return false
+        end
+    end
+
+    function perturb_u0!(integrator)
+        """ perturbes initial pressure by 0.1% for solver reinitialization """
+        u₀ = integrator.sol.prob.u0
+        u₀[1] *= 1.001
+        return u₀
+    end
+
     # Discrete Callback to terminate ODE solver before reaching singularity at Ma = 1
-    cb = DiscreteCallback(approaches_singularity,terminate!)
+    cb1 = DiscreteCallback(approaches_singularity,terminate!)
+    restart_after_timeout!(integrator) = reinit!(integrator, perturb_u0!(integrator))
+    cb2 = DiscreteCallback(timeout,restart_after_timeout!)
+    cbs = CallbackSet(cb1,cb2)
     prob = ODEProblem(znd!,y₀,tel,params)
 
     @time begin
         # Benchmarks needed for: abstol, reltol, Algos: Rosenbrock23, RadauIIA5, Rodas4
-        out = solve(prob,Rosenbrock23(autodiff=false),progress=true,callback=cb,abtol=absTol,reltol=relTol)
+        out = solve(prob,Rosenbrock23(autodiff=false),progress=true,callback=cbs,abtol=absTol,reltol=relTol)
     end
 
     create_output_dict(out,gas,advanced_output)
