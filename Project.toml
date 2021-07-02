@@ -1,10 +1,10 @@
 name = "SDtoolbox"
 uuid = "5bc79f6f-357f-4b0b-8579-c2462dcf5d50"
 authors = ["Niclas Garan"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
-DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 

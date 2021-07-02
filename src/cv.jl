@@ -35,7 +35,7 @@ Under these operating systems:
 
 export cvsolve
 
-using DifferentialEquations
+using OrdinaryDiffEq
 using PyCall
 
 

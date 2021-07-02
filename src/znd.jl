@@ -39,7 +39,7 @@ Under these operating systems:
 
 export zndsolve
 
-using DifferentialEquations
+using OrdinaryDiffEq
 using PyCall
 
 
