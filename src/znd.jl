@@ -199,6 +199,7 @@ function getThermicity(gas::PyObject)
 end
 
 function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
+             solver_algorithm=Rosenbrock23,
              t_end::Real=1e-3,max_step::Real=1e-4,t_eval=nothing,
              relTol::Real=1e-5,absTol::Real=1e-8,
              advanced_output::Bool=false)
@@ -291,7 +292,7 @@ function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
 
     @time begin
         # Benchmarks needed for: abstol, reltol, Algos: Rosenbrock23, RadauIIA5, Rodas4
-        out = solve(prob,Rosenbrock23(autodiff=false),progress=true,callback=cb,abtol=absTol,reltol=relTol)
+        out = solve(prob,solver_algorithm(autodiff=false),progress=true,callback=cb,abtol=absTol,reltol=relTol)
     end
 
     create_output_dict(out,gas,advanced_output)
