@@ -10,12 +10,12 @@ T₁ = 300
     X₁ = "H2:$(42*ϕ), O2:21,N2:79"
     mech = "gri30.xml"
 
-    gas₁ = ct.Solution(mech)::PyObject
+    gas₁ = ct.Solution(mech)
     gas₁.TPX = T₁,P₁,X₁
 
-    U₁ = CJspeed(P₁,T₁,X₁,mech)::Float64
+    U₁ = CJspeed(P₁,T₁,X₁,mech)
 
-    gas = PostShock_fr(U₁, P₁, T₁, X₁, mech)::PyObject
+    gas = PostShock_fr(U₁, P₁, T₁, X₁, mech)
 
     out = zndsolve(gas,gas₁,U₁,advanced_output=true)
 
