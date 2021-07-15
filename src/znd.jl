@@ -118,7 +118,7 @@ function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Flo
 
     """
     # current gas state and constant parameters
-    gas::PyObject,U₁::Real,ρ₁::Real,Mᵢ::Vector{Float64},hₛ_RT::Vector{Float64} = params[1:5]
+    gas::PyObject,U₁::Real,ρ₁::Real,Mᵢ::Vector{Float64} = params[1:4]
 
     # make sure physical bounds are respected to avoid cantera errors
     if !any(y[1:2].<=0)
@@ -155,6 +155,7 @@ function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Flo
 
     # σ̇  = getThermicity(gas)
     # calculating thermicity directly saves some PyCalls
+    hₛ_RT = gas.standard_enthalpies_RT
     hₛ = hₛ_RT .* R̄ .* T ./ Mᵢ
     cₚ = gas.cp_mass::Float64
     σ̇  = sum((M̄./Mᵢ .- hₛ./(cₚ * T)) .* Ẏ)
@@ -191,6 +192,7 @@ function getThermicity(gas::PyObject)
     # Mᵢ = gas.molecular_weights
     M̄ = gas.mean_molecular_weight
     T, ρ = gas.TD
+    hₛ_RT = gas.standard_enthalpies_RT
     hₛ = hₛ_RT * R̄ * T ./ Mᵢ
     ω̇  = gas.net_production_rates
     cₚ = gas.cp_mass
@@ -270,9 +272,8 @@ function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
     y₀ = vcat([gas.P,gas.density,x_start],gas.Y)::Vector{Float64}
 
     global Mᵢ = gas.molecular_weights::Vector{Float64}
-    global hₛ_RT = gas.standard_enthalpies_RT::Vector{Float64}
 
-    params = [gas,U₁,ρ₁,Mᵢ,hₛ_RT,0.]
+    params = [gas,U₁,ρ₁,Mᵢ,0.]
 
     tel = [0.,t_end] # Timespan
 

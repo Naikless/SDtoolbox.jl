@@ -65,7 +65,7 @@ function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Floa
 
     """
     # current gas state and constant parameters
-    gas::PyObject,ρ₁::Real,Mᵢ::Vector{Float64},hₛ_RT::Vector{Float64} = params
+    gas::PyObject,ρ₁::Real,Mᵢ::Vector{Float64} = params
 
     # make sure physical bounds are respected to avoid cantera errors
     if y[1] >= 0
@@ -77,6 +77,7 @@ function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Floa
     end
 
     ω̇  = gas.net_production_rates::Vector{Float64}
+    hₛ_RT = gas.standard_enthalpies_RT
     cᵥ = gas.cv_mass::Float64
     Ṫ = -T * R̄ /(ρ₁*cᵥ) * sum((hₛ_RT .- 1) .* ω̇ )
     Ẏ = ω̇  .* Mᵢ ./ ρ₁
@@ -129,7 +130,6 @@ function cvsolve(gas::PyObject;t_end::Real=1e-6,max_step::Real=1e-5,
     global ρ₁ = gas.density::Float64
     y₀ = vcat(gas.T::Float64,gas.Y::Vector{Float64})
     global Mᵢ = gas.molecular_weights::Vector{Float64}
-    global hₛ_RT = gas.standard_enthalpies_RT::Vector{Float64}
 
     tel = [0.,t_end] # Timespan
 
@@ -149,7 +149,7 @@ function cvsolve(gas::PyObject;t_end::Real=1e-6,max_step::Real=1e-5,
         end
     end
 
-    params = [gas,ρ₁,Mᵢ,hₛ_RT]
+    params = [gas,ρ₁,Mᵢ]
 
     # Discrete Callback to terminate ODE solver when approaching equilibrium
     cb = DiscreteCallback(approaches_equilibrium,terminate!)
@@ -193,7 +193,7 @@ function create_output_dict(ode_output::ODESolution,gas::PyObject)
     for (T,Y) in zip(output["T"],output["speciesY"])
         gas.TDY = T,ρ₁,Y
         M̄ = gas.mean_molecular_weight
-        dTdt = cv!(zeros(length(Y)+1),vcat(T,Y),[gas,ρ₁,Mᵢ,hₛ_RT],0.)[1]::Float64
+        dTdt = cv!(zeros(length(Y)+1),vcat(T,Y),[gas,ρ₁,Mᵢ],0.)[1]::Float64
 
         push!(output["P"],gas.P)
         push!(output["speciesX"],gas.X)
