@@ -1,2 +1,4 @@
 /Manifest.toml
 /sdtoolbox/__pycache__/*
+
+test/sdtoolbox/__pycache__/

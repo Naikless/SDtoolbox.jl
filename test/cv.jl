@@ -1,5 +1,8 @@
 import SDtoolbox: ct, cvsolve
 using Plots
+using PyCall
+using StatsBase
+using Interpolations
 
 P₁ = 2e5
 T₁ = 1500
@@ -17,3 +20,16 @@ T₁ = 1500
 
     plot!(out["time"],out["T"])
 # end
+
+# compare with original sdtoolbox
+pushfirst!(PyVector(pyimport("sys")."path"), @__DIR__)
+cvsolve_py = pyimport("sdtoolbox.cv").cvsolve
+gas.TPX = T₁,P₁,X₁
+out_py = cvsolve_py(gas,t_end=out["time"][end])
+plot!(out_py["time"],out_py["T"])
+
+# calculate cross correlation to quantify error
+itp = LinearInterpolation(out["time"][1:(end-1)], out["T"][1:(end-1)])
+sol_itp = itp(out_py["time"])
+
+err = maximum(crosscor(sol_itp,out_py["T"]))
