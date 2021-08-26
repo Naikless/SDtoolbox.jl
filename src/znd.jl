@@ -201,10 +201,9 @@ function getThermicity(gas::PyObject)
 end
 
 function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
-             solver_algorithm=Rosenbrock23,
              t_end::Real=1e-3,max_step::Real=1e-4,t_eval=nothing,
              relTol::Real=1e-5,absTol::Real=1e-8,
-             advanced_output::Bool=false)
+             advanced_output::Bool=false,solver_algorithm=Rosenbrock23,)
     """
     ZND Model Detonation Computation
     Solves the set of ODEs defined in znd!().
