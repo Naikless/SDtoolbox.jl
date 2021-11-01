@@ -37,7 +37,9 @@ jobs:
       - run: julia -e "import Pkg; Pkg.add(\"PyCall\")"
       - run: | # patch to enforce python 3.7 on x86 Windows due to cantera requirements
           if [[ $RUNNER_OS == 'Windows' && ${{ matrix.julia-arch }} == 'x86' ]] ; then 
-             sed -i -e 's/Miniconda$(MINICONDA_VERSION)-latest-/Miniconda3-py37_4.10.3-'  C\:/Users/runneradmin/.julia/packages/Conda/*/src/Conda.jl
+             sed -i -e 's/Miniconda$(MINICONDA_VERSION)-latest-/Miniconda3-py37_4.10.3-/'  C\:/Users/runneradmin/.julia/packages/Conda/*/src/Conda.jl
+             rm -r C\:/Users/runneradmin/.julia/conda
+             julia -e "import Pkg; Pkg.build(\"PyCall\")"
           fi
       - run: julia -e "import PyCall; PyCall.pyimport_conda(\"scipy\",\"scipy\"); PyCall.pyimport_conda(\"matplotlib\",\"matplotlib\")"
       - uses: julia-actions/julia-runtest@v1
