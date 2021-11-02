@@ -27,6 +27,8 @@ T₁ = 300
 # end
 
 # compare with original sdtoolbox
+pyimport_conda("scipy","scipy")
+pyimport_conda("matplotlib","matplotlib")
 pushfirst!(PyVector(pyimport("sys")."path"), @__DIR__)
 zndsolve_py = pyimport("sdtoolbox.znd").zndsolve
 gas = pyimport("sdtoolbox.postshock").PostShock_fr(U₁,P₁,T₁,X₁,mech)

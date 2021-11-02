@@ -22,6 +22,8 @@ T₁ = 1500
 # end
 
 # compare with original sdtoolbox
+pyimport_conda("scipy","scipy")
+pyimport_conda("matplotlib","matplotlib")
 pushfirst!(PyVector(pyimport("sys")."path"), @__DIR__)
 cvsolve_py = pyimport("sdtoolbox.cv").cvsolve
 gas.TPX = T₁,P₁,X₁
