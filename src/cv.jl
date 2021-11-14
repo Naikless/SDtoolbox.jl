@@ -1,4 +1,3 @@
-module CV
 """
 Shock and Detonation Toolbox
 "cv" module
@@ -24,14 +23,8 @@ Please refer to LICENCE.txt or the above report for copyright and disclaimers.
 
 http://shepherd.caltech.edu/EDL/PublicResources/sdt/
 
-
-################################################################################
-Transfered to Julia language in June 2021 by Niclas Garan, TU Berlin
-Tested with:
-    Julia 1.6.1 and Cantera 2.5.1
-Under these operating systems:
-    Windows 10, Linux (CentOS)
 """
+module CV
 
 export cvsolve
 
@@ -46,24 +39,26 @@ function __init__()
     global R̄ = ct.gas_constant
 end
 
+"""
+    cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Float64}
 
+Evaluates the system of ordinary differential equations for an adiabatic,
+constant-volume, zero-dimensional reactor.
+It assumes that the "gas" object represents a reacting ideal gas mixture.
+
+INPUT:
+    t = time
+    y = solution array [temperature, species mass 1, 2, ...]
+    gas = working gas object
+
+OUTPUT:
+    An array containing time derivatives of:
+        temperature and species mass fractions,
+    formatted in a way that the integrator in cvsolve can recognize.
+
+"""
 function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Float64}
-    """
-    Evaluates the system of ordinary differential equations for an adiabatic,
-    constant-volume, zero-dimensional reactor.
-    It assumes that the "gas" object represents a reacting ideal gas mixture.
 
-    INPUT:
-        t = time
-        y = solution array [temperature, species mass 1, 2, ...]
-        gas = working gas object
-
-    OUTPUT:
-        An array containing time derivatives of:
-            temperature and species mass fractions,
-        formatted in a way that the integrator in cvsolve can recognize.
-
-    """
     # current gas state and constant parameters
     gas::PyObject,ρ₁::Real,Mᵢ::Vector{Float64} = params
 
@@ -88,45 +83,48 @@ function cv!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Floa
     return dy
 end
 
-
-function cvsolve(gas::PyObject;t_end::Real=1e-6,max_step::Real=1e-5,
+"""
+    cvsolve(gas::PyObject;t_end::Real=1e-6,max_step::Real=1e-5,
                 t_eval=nothing,relTol::Real=1e-5,absTol::Real=1e-8)
-    """
-    Solves the ODE system defined in cv!, taking the gas object input as the
-    initial state.
+
+Solves the ODE system defined in cv!, taking the gas object input as the
+initial state.
 
 
-    FUNCTION SYNTAX:
-        output = cvsolve(gas,**kwargs)
+FUNCTION SYNTAX:
+    output = cvsolve(gas,**kwargs)
 
-    INPUT:
+INPUT:
+    gas = working gas object
+
+OPTIONAL INPUT:
+    t_end = end time for integration, in sec
+    max_step = maximum time step for integration, in sec
+    t_eval = array of time values to evaluate the solution at.
+                If left as "None", solver will select values.
+                Sometimes these may be too sparse for good-looking plots.
+    relTol = relative tolerance
+    absTol = absolute tolerances
+
+OUTPUT:
+    output = a dictionary containing the following results:
+        time = time array
+        T = temperature profile array
+        P = pressure profile array
+        speciesY = species mass fraction array
+        speciesX = species mole fraction array
+
         gas = working gas object
 
-    OPTIONAL INPUT:
-        t_end = end time for integration, in sec
-        max_step = maximum time step for integration, in sec
-        t_eval = array of time values to evaluate the solution at.
-                    If left as "None", solver will select values.
-                    Sometimes these may be too sparse for good-looking plots.
-        relTol = relative tolerance
-        absTol = absolute tolerances
+        exo_time = pulse width (in secs) of temperature gradient (using 1/2 max)
+        ind_time = time to maximum temperature gradient
+        ind_time_10 = time to 10% of maximum temperature gradient
+        ind_time_90 = time to 90% of maximum temperature gradient
 
-    OUTPUT:
-        output = a dictionary containing the following results:
-            time = time array
-            T = temperature profile array
-            P = pressure profile array
-            speciesY = species mass fraction array
-            speciesX = species mole fraction array
+"""
+function cvsolve(gas::PyObject;t_end::Real=1e-6,max_step::Real=1e-5,
+                t_eval=nothing,relTol::Real=1e-5,absTol::Real=1e-8)
 
-            gas = working gas object
-
-            exo_time = pulse width (in secs) of temperature gradient (using 1/2 max)
-            ind_time = time to maximum temperature gradient
-            ind_time_10 = time to 10% of maximum temperature gradient
-            ind_time_90 = time to 90% of maximum temperature gradient
-
-    """
     global ρ₁ = gas.density::Float64
     y₀ = vcat(gas.T::Float64,gas.Y::Vector{Float64})
     global Mᵢ = gas.molecular_weights::Vector{Float64}
@@ -270,7 +268,6 @@ function create_output_dict(ode_output::ODESolution,gas::PyObject)
             end
         end
     end
-
 
     # Exothermic time for CV explosion
     if tstep2 == 1

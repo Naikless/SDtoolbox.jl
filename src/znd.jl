@@ -1,4 +1,3 @@
-module ZND
 """
 Shock and Detonation Toolbox
 "ZND" module
@@ -28,14 +27,8 @@ Please refer to LICENCE.txt or the above report for copyright and disclaimers.
 
 http://shepherd.caltech.edu/EDL/PublicResources/sdt/
 
-
-################################################################################
-Transfered to Julia language in June 2021 by Niclas Garan, TU Berlin
-Tested with:
-    Julia 1.6.1 and Cantera 2.5.1
-Under these operating systems:
-    Windows 10, Linux (CentOS)
 """
+module ZND
 
 export zndsolve
 
@@ -56,24 +49,26 @@ gas1 = nothing
 ρ₁ = nothing
 Mᵢ = nothing
 
+"""
+    soundspeed_fr(gas::PyObject)
 
+Computes the frozen sound speed by using a forward finite
+difference approximation and evaluating frozen composition states on the
+isentrope passing through the reference (S, V) state supplied by the gas
+object passed to the function.
+
+FUNCTION SYNTAX:
+    a_frz =  soundspeed_fr(gas)
+
+INPUT:
+    gas = working gas object (restored to original state at end of function)
+
+OUTPUT:
+    a_frz = frozen sound speed = sqrt({d P/d rho)_{s,x0})
+
+"""
 function soundspeed_fr(gas::PyObject)
-    """
-    Computes the frozen sound speed by using a forward finite
-    difference approximation and evaluating frozen composition states on the
-    isentrope passing through the reference (S, V) state supplied by the gas
-    object passed to the function.
 
-    FUNCTION SYNTAX:
-        a_frz =  soundspeed_fr(gas)
-
-    INPUT:
-        gas = working gas object (restored to original state at end of function)
-
-    OUTPUT:
-        a_frz = frozen sound speed = sqrt({d P/d rho)_{s,x0})
-
-    """
     ρ₀ = gas.density
     p₀ = gas.P
     s₀ = gas.entropy_mass
@@ -100,23 +95,26 @@ function soundspeed_fr(gas::PyObject)
     return a_frz
 end
 
+"""
+    znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Float64}
+
+Set of ODEs to solve ZND Detonation Problem.
+
+INPUT:
+    t = time
+    y = solution array [pressure, density, position, species mass 1, 2, ..]
+    gas = working gas object
+    U₁ = shock velocity (m/s)
+    ρ₁ = initial density (kg/m^3)
+
+OUTPUT:
+    An array containing time derivatives of:
+        pressure, density, distance and species mass fractions,
+    formatted in a way that the integrator in zndsolve can recognize.
+
+"""
 function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Float64}
-    """
-    Set of ODEs to solve ZND Detonation Problem.
 
-    INPUT:
-        t = time
-        y = solution array [pressure, density, position, species mass 1, 2, ..]
-        gas = working gas object
-        U₁ = shock velocity (m/s)
-        ρ₁ = initial density (kg/m^3)
-
-    OUTPUT:
-        An array containing time derivatives of:
-            pressure, density, distance and species mass fractions,
-        formatted in a way that the integrator in zndsolve can recognize.
-
-    """
     # current gas state and constant parameters
     gas::PyObject,U₁::Real,ρ₁::Real,Mᵢ::Vector{Float64} = params[1:4]
 
@@ -176,19 +174,22 @@ function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Flo
     return dy
 end
 
+"""
+    getThermicity(gas::PyObject)
+
+Returns the thermicity = sum ( (w/wi-hsi/(cp*T))*dyidt ).
+
+FUNCTION SYNTAX:
+    thermicity = getThermicity(gas)
+
+INPUT:
+    gas = Cantera gas object (not modified by this function)
+
+OUTPUT:
+    thermicity (1/s)
+"""
 function getThermicity(gas::PyObject)
-    """
-    Returns the thermicity = sum ( (w/wi-hsi/(cp*T))*dyidt ).
 
-    FUNCTION SYNTAX:
-        thermicity = getThermicity(gas)
-
-    INPUT:
-        gas = Cantera gas object (not modified by this function)
-
-    OUTPUT:
-        thermicity (1/s)
-    """
     # Mᵢ = gas.molecular_weights
     M̄ = gas.mean_molecular_weight
     T, ρ = gas.TD
@@ -200,64 +201,69 @@ function getThermicity(gas::PyObject)
     σ̇ = sum((M̄ ./ Mᵢ - hₛ/(cₚ*T)).*dydt)
 end
 
+"""
+zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
+             t_end::Real=1e-3,max_step::Real=1e-4,t_eval=nothing,
+             relTol::Real=1e-5,absTol::Real=1e-8,
+             advanced_output::Bool=false,solver_algorithm=Rosenbrock23,)
+
+ZND Model Detonation Computation
+Solves the set of ODEs defined in znd!().
+
+FUNCTION SYNTAX:
+output = zndsolve(gas,gas1,U1,**kwargs)
+
+INPUT
+    gas = Cantera gas object - postshock state
+    gas₁ = Cantera gas object - initial state
+    U₁ = shock velocity (m/s)
+
+OPTIONAL INPUT:
+    t_end = end time for integration, in sec
+    max_step = maximum time step for integration, in sec
+    t_eval = array of time values to evaluate the solution at.
+                If left as "None", solver will select values.
+                Sometimes these may be too sparse for good-looking plots.
+    relTol = relative tolerance
+    absTol = absolute tolerance
+    advanced_output = calculates optional extra parameters such as induction lengths
+
+
+OUTPUT:
+    output = a dictionary containing the following results:
+        time = time array
+        distance = distance array
+
+        T = temperature array
+        P = pressure array
+        rho = density array
+        U = velocity array
+        thermicity = thermicity array
+        species = species mass fraction array
+
+        M = Mach number array
+        af = frozen sound speed array
+        g = gamma (cp/cv) array
+        wt = mean molecular weight array
+        sonic = sonic parameter (c^2-U^2) array
+
+        tfinal = final target integration time
+        xfinal = final distance reached
+
+        gas₁ = a copy of the input initial state
+        U₁ = shock velocity
+
+        and, if advanced_output=True:
+        ind_time_ZND = time to maximum thermicity gradient
+        ind_len_ZND = distance to maximum thermicity gradient
+        exo_time_ZND = pulse width (in secs) of thermicity  (using 1/2 max)
+        ind_time_ZND = pulse width (in meters) of thermicity (using 1/2 max)
+        max_thermicity_width_ZND = according to Ng et al definition
+"""
 function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
              t_end::Real=1e-3,max_step::Real=1e-4,t_eval=nothing,
              relTol::Real=1e-5,absTol::Real=1e-8,
              advanced_output::Bool=false,solver_algorithm=Rosenbrock23,)
-    """
-    ZND Model Detonation Computation
-    Solves the set of ODEs defined in znd!().
-
-    FUNCTION SYNTAX:
-    output = zndsolve(gas,gas1,U1,**kwargs)
-
-    INPUT
-        gas = Cantera gas object - postshock state
-        gas₁ = Cantera gas object - initial state
-        U₁ = shock velocity (m/s)
-
-    OPTIONAL INPUT:
-        t_end = end time for integration, in sec
-        max_step = maximum time step for integration, in sec
-        t_eval = array of time values to evaluate the solution at.
-                    If left as "None", solver will select values.
-                    Sometimes these may be too sparse for good-looking plots.
-        relTol = relative tolerance
-        absTol = absolute tolerance
-        advanced_output = calculates optional extra parameters such as induction lengths
-
-
-    OUTPUT:
-        output = a dictionary containing the following results:
-            time = time array
-            distance = distance array
-
-            T = temperature array
-            P = pressure array
-            rho = density array
-            U = velocity array
-            thermicity = thermicity array
-            species = species mass fraction array
-
-            M = Mach number array
-            af = frozen sound speed array
-            g = gamma (cp/cv) array
-            wt = mean molecular weight array
-            sonic = sonic parameter (c^2-U^2) array
-
-            tfinal = final target integration time
-            xfinal = final distance reached
-
-            gas₁ = a copy of the input initial state
-            U₁ = shock velocity
-
-            and, if advanced_output=True:
-            ind_time_ZND = time to maximum thermicity gradient
-            ind_len_ZND = distance to maximum thermicity gradient
-            exo_time_ZND = pulse width (in secs) of thermicity  (using 1/2 max)
-            ind_time_ZND = pulse width (in meters) of thermicity (using 1/2 max)
-            max_thermicity_width_ZND = according to Ng et al definition
-    """
 
     ###########################################################
     # Define initial information

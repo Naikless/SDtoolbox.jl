@@ -1,4 +1,3 @@
-module Postshock
 """
 Shock and Detonation Toolbox
 "Postshock" module
@@ -33,14 +32,9 @@ Please refer to LICENCE.txt or the above report for copyright and disclaimers.
 
 http://shepherd.caltech.edu/EDL/PublicResources/sdt/
 
-
-################################################################################
-Transfered to Julia language in June 2021 by Niclas Garan, TU Berlin
-Tested with:
-    Julia 1.6.1 and Cantera 2.5.1
-Under these operating systems:
-    Windows 10, Linux (CentOS)
 """
+module Postshock
+
 
 export CJspeed, PostShock_eq, PostShock_fr
 
@@ -57,25 +51,27 @@ const ERRFT = 1e-4
 const ERRFV = 1e-4
 const volumeBoundRatio = 5
 
+"""
+    LSQ_CJspeed(x,y)
 
+Determines least squares fit of parabola to input data
+
+FUNCTION SYNTAX:
+[a,b,c,R2,SSE,SST] = LSQ_CJspeed(x,y)
+
+INPUT:
+    x = independent data points
+    y = dependent data points
+
+OUTPUT:
+    a,b,c = coefficients of quadratic function (ax^2 + bx + c = 0)
+    R2 = R-squared value
+    SSE = sum of squares due to error
+    SST = total sum of squares
+
+"""
 function LSQ_CJspeed(x,y)
-    """
-    Determines least squares fit of parabola to input data
 
-    FUNCTION SYNTAX:
-    [a,b,c,R2,SSE,SST] = LSQ_CJspeed(x,y)
-
-    INPUT:
-        x = independent data points
-        y = dependent data points
-
-    OUTPUT:
-        a,b,c = coefficients of quadratic function (ax^2 + bx + c = 0)
-        R2 = R-squared value
-        SSE = sum of squares due to error
-        SST = total sum of squares
-
-    """
     # Calculate Sums
     X = 0.0; X2 = 0.0; X3 = 0.0; X4 = 0.0;
     Y = 0.0; Y1 = 0.0; Y2 = 0.0;
@@ -113,33 +109,35 @@ function LSQ_CJspeed(x,y)
     return a,b,c,R2,SSE,SST
 end
 
+"""
+    hug_fr(x,vb,h1,P1,v1,gas)
 
+Computes difference in enthalpy computed from assumed (T, V)
+state and fixed composition (frozen) hugoniot evaluation.  Used
+with root solver such as 'fsolve' to compute frozen hugoniot as a function
+of volume.  Input gas object is modified to correspond to input (T, V).
+
+FUNCTION SYNTAX:
+    diff = hug_fr(x,vb,h1,P1,v1,gas)
+
+USAGE:
+    fval = fsolve(hug_fr,Ta,args=(vb,h1,P1,v1,gas))
+        = frozen Hugoniot temperature (K) corresponding to vb
+
+INPUT:
+    Ta = initial guess for frozen Hugoniot temperature (K)
+    vb = desired frozen Hugoniot specific volume (m^3/kg)
+    h1 = enthalpy at state 1 (J/kg)
+    P1 = pressure at state 1 (Pa)
+    v1 = specific volume at state 1 (m^3/kg)
+    gas = working gas object
+
+OUTPUT:
+    enthalpy difference
+
+"""
 function hug_fr(x,vb,h1,P1,v1,gas)
-    """
-    Computes difference in enthalpy computed from assumed (T, V)
-    state and fixed composition (frozen) hugoniot evaluation.  Used
-    with root solver such as 'fsolve' to compute frozen hugoniot as a function
-    of volume.  Input gas object is modified to correspond to input (T, V).
 
-    FUNCTION SYNTAX:
-        diff = hug_fr(x,vb,h1,P1,v1,gas)
-
-    USAGE:
-        fval = fsolve(hug_fr,Ta,args=(vb,h1,P1,v1,gas))
-            = frozen Hugoniot temperature (K) corresponding to vb
-
-    INPUT:
-        Ta = initial guess for frozen Hugoniot temperature (K)
-        vb = desired frozen Hugoniot specific volume (m^3/kg)
-        h1 = enthalpy at state 1 (J/kg)
-        P1 = pressure at state 1 (Pa)
-        v1 = specific volume at state 1 (m^3/kg)
-        gas = working gas object
-
-    OUTPUT:
-        enthalpy difference
-
-    """
     gas.TD = x, 1.0/vb
     hb1 = gas.enthalpy_mass
     Pb = R̄ * x/(gas.mean_molecular_weight*vb)
@@ -148,34 +146,36 @@ function hug_fr(x,vb,h1,P1,v1,gas)
     return hb2-hb1
 end
 
+"""
+    hug_eq(x,vb,h1,P1,v1,gas)
 
+Computes difference in enthalpy computed from assumed (T, V)
+state and equilibrium composition state hugoniot evaluation.  Used
+with root solver such as 'fsolve' to compute equilibrium hugoniot as a function
+of volume.  Input gas object is modified to correspond to input (T, V) and
+an equilibrium composition.
+
+FUNCTION SYNTAX:
+    diff = hug_eq(x,vb,h1,P1,v1,gas)
+
+USAGE:
+    fval = fsolve(hug_eq,Ta,args=(vb,h1,P1,v1,gas))
+        = equilibrium Hugoniot temperature (K) corresponding to vb
+
+INPUT:
+    Ta = initial guess for equilibrium Hugoniot temperature (K)
+    vb = desired equilibrium Hugoniot specific volume (m^3/kg)
+    h1 = enthalpy at state 1 (J/kg)
+    P1 = pressure at state 1 (Pa)
+    v1 = specific volume at state 1 (m^3/kg)
+    gas = working gas object
+
+OUTPUT:
+    enthalpy difference
+
+"""
 function hug_eq(x,vb,h1,P1,v1,gas)
-    """
-    Computes difference in enthalpy computed from assumed (T, V)
-    state and equilibrium composition state hugoniot evaluation.  Used
-    with root solver such as 'fsolve' to compute equilibrium hugoniot as a function
-    of volume.  Input gas object is modified to correspond to input (T, V) and
-    an equilibrium composition.
 
-    FUNCTION SYNTAX:
-        diff = hug_eq(x,vb,h1,P1,v1,gas)
-
-    USAGE:
-        fval = fsolve(hug_eq,Ta,args=(vb,h1,P1,v1,gas))
-            = equilibrium Hugoniot temperature (K) corresponding to vb
-
-    INPUT:
-        Ta = initial guess for equilibrium Hugoniot temperature (K)
-        vb = desired equilibrium Hugoniot specific volume (m^3/kg)
-        h1 = enthalpy at state 1 (J/kg)
-        P1 = pressure at state 1 (Pa)
-        v1 = specific volume at state 1 (m^3/kg)
-        gas = working gas object
-
-    OUTPUT:
-        enthalpy difference
-
-    """
     gas.TD = x, 1.0/vb
     gas.equilibrate("TV")
     hb1 = gas.enthalpy_mass
@@ -184,25 +184,27 @@ function hug_eq(x,vb,h1,P1,v1,gas)
     return hb2-hb1
 end
 
+"""
+    FHFP(w1,gas2,gas1)
 
+Uses the momentum and energy conservation equations to calculate
+error in pressure and enthalpy given shock speed, upstream (gas1)
+and downstream states (gas2).  States are not modified by these routines.
+
+FUNCTION SYNTAX:
+    [FH,FP] = FHFP(w1,gas2,gas1)
+
+INPUT:
+    w1 = shock speed (m/s)
+    gas2 = gas object at working/downstream state
+    gas1 = gas object at initial/upstream state
+
+OUTPUT:
+    FH,FP = error in enthalpy and pressure
+
+"""
 function FHFP(w1,gas2,gas1)
-    """
-    Uses the momentum and energy conservation equations to calculate
-    error in pressure and enthalpy given shock speed, upstream (gas1)
-    and downstream states (gas2).  States are not modified by these routines.
 
-    FUNCTION SYNTAX:
-        [FH,FP] = FHFP(w1,gas2,gas1)
-
-    INPUT:
-        w1 = shock speed (m/s)
-        gas2 = gas object at working/downstream state
-        gas1 = gas object at initial/upstream state
-
-    OUTPUT:
-        FH,FP = error in enthalpy and pressure
-
-    """
     P1 = gas1.P
     H1 = gas1.enthalpy_mass
     r1 = gas1.density
@@ -216,25 +218,27 @@ function FHFP(w1,gas2,gas1)
     return FH, FP
 end
 
+"""
+    CJ_calc(gas, gas1, ERRFT, ERRFV, x)
 
+Calculates the Chapman-Jouguet wave speed using Reynolds' iterative method.
+
+FUNCTION SYNTAX:
+    [gas,w1] = CJ_calc(gas,gas1,ERRFT,ERRFV,x)
+
+INPUT:
+    gas = working gas object
+    gas1 = gas object at initial state
+    ERRFT,ERRFV = error tolerances for iteration
+    x = density ratio
+
+OUTPUT:
+    gas = gas object at equilibrium state
+    w1 = initial velocity to yield prescribed density ratio
+
+"""
 function CJ_calc(gas, gas1, ERRFT, ERRFV, x)
-    """
-    Calculates the Chapman-Jouguet wave speed using Reynolds' iterative method.
 
-    FUNCTION SYNTAX:
-        [gas,w1] = CJ_calc(gas,gas1,ERRFT,ERRFV,x)
-
-    INPUT:
-        gas = working gas object
-        gas1 = gas object at initial state
-        ERRFT,ERRFV = error tolerances for iteration
-        x = density ratio
-
-    OUTPUT:
-        gas = gas object at equilibrium state
-        w1 = initial velocity to yield prescribed density ratio
-
-    """
     T = 2000; r1 = gas1.density
     V1 = 1/r1
     i = 0; DT = 1000; DW = 1000;
@@ -290,9 +294,8 @@ function CJ_calc(gas, gas1, ERRFT, ERRFV, x)
     return w1
 end
 
-
+""" defaults to CEA Algorithm """
 function CJspeed(P1, T1, q, mech; method = "CEA", kwargs...)
-    """ defaults to CEA Algorithm """
     if method == "CEA"
         _CJspeed_CEA(P1, T1, q, mech)
     elseif method == "umin"
@@ -302,38 +305,40 @@ function CJspeed(P1, T1, q, mech; method = "CEA", kwargs...)
     end
 end
 
+"""
+    _CJspeed_umin(P1, T1, q, mech; fullOutput=false)
 
+Calculates CJ detonation velocity for a given pressure, temperature, and
+composition.
+
+FUNCTION SYNTAX:
+    If only CJ speed required:
+    cj_speed = CJspeed(P1,T1,q,mech)
+    If full output required:
+    [cj_speed,R2,plot_data] = CJspeed(P1,T1,q,mech,fullOutput=true)
+
+INPUT:
+    P1 = initial pressure (Pa)
+    T1 = initial temperature (K)
+    q = reactant species mole fractions in one of Cantera's recognized formats
+    mech = cti file containing mechanism data (e.g. 'gri30.cti')
+
+OPTIONAL INPUT:
+    fullOutput = set true for R-squared value and pre-formatted plot data
+                (the latter for use with sdtoolbox.utilities.CJspeed_plot)
+
+OUTPUT
+    cj_speed = CJ detonation speed (m/s)
+    R2 = R-squared value of LSQ curve fit (optional)
+    plot_data = tuple (rr,w1,dnew,a,b,c)
+                rr = density ratio
+                w1 = speed
+                dnew = minimum density
+                a,b,c = quadratic fit coefficients
+
+"""
 function _CJspeed_umin(P1, T1, q, mech; fullOutput=false)
-    """
-    Calculates CJ detonation velocity for a given pressure, temperature, and
-    composition.
 
-    FUNCTION SYNTAX:
-        If only CJ speed required:
-        cj_speed = CJspeed(P1,T1,q,mech)
-        If full output required:
-        [cj_speed,R2,plot_data] = CJspeed(P1,T1,q,mech,fullOutput=true)
-
-    INPUT:
-        P1 = initial pressure (Pa)
-        T1 = initial temperature (K)
-        q = reactant species mole fractions in one of Cantera's recognized formats
-        mech = cti file containing mechanism data (e.g. 'gri30.cti')
-
-    OPTIONAL INPUT:
-        fullOutput = set true for R-squared value and pre-formatted plot data
-                    (the latter for use with sdtoolbox.utilities.CJspeed_plot)
-
-    OUTPUT
-        cj_speed = CJ detonation speed (m/s)
-        R2 = R-squared value of LSQ curve fit (optional)
-        plot_data = tuple (rr,w1,dnew,a,b,c)
-                    rr = density ratio
-                    w1 = speed
-                    dnew = minimum density
-                    a,b,c = quadratic fit coefficients
-
-    """
     #DECLARATIONS
     numsteps = 20; maxv = 2.0; minv = 1.5
     w1 = zeros(Float64, numsteps+1)
@@ -374,25 +379,26 @@ function _CJspeed_umin(P1, T1, q, mech; fullOutput=false)
     end
 end
 
+"""
+    PostShock_fr(U1, P1, T1, q, mech)
 
+Calculates frozen post-shock state for a specified shock velocity and pre-shock state.
+
+FUNCTION SYNTAX:
+    gas = PostShock_fr(U1,P1,T1,q,mech)
+
+INPUT:
+    U1 = shock speed (m/s)
+    P1 = initial pressure (Pa)
+    T1 = initial temperature (K)
+    q = reactant species mole fractions in one of Cantera's recognized formats
+    mech = cti file containing mechanism data (e.g. 'gri30.cti')
+
+OUTPUT:
+    gas = gas object at frozen post-shock state
+
+"""
 function PostShock_fr(U1, P1, T1, q, mech)
-    """
-    Calculates frozen post-shock state for a specified shock velocity and pre-shock state.
-
-    FUNCTION SYNTAX:
-        gas = PostShock_fr(U1,P1,T1,q,mech)
-
-    INPUT:
-        U1 = shock speed (m/s)
-        P1 = initial pressure (Pa)
-        T1 = initial temperature (K)
-        q = reactant species mole fractions in one of Cantera's recognized formats
-        mech = cti file containing mechanism data (e.g. 'gri30.cti')
-
-    OUTPUT:
-        gas = gas object at frozen post-shock state
-
-    """
 
     gas1 = ct.Solution(mech)
     gas  = ct.Solution(mech)
@@ -403,25 +409,26 @@ function PostShock_fr(U1, P1, T1, q, mech)
     gas = shk_calc(U1, gas, gas1, ERRFT, ERRFV)
 end
 
+"""
+    PostShock_eq(U1, P1, T1, q, mech)
 
+Calculates equilibrium post-shock state for a specified shock velocity and pre-shock state.
+
+FUNCTION SYNTAX:
+    gas = PostShock_eq(U1,P1,T1,q,mech)
+
+INPUT:
+    U1 = shock speed (m/s)
+    P1 = initial pressure (Pa)
+    T1 = initial temperature (K)
+    q = reactant species mole fractions in one of Cantera's recognized formats
+    mech = cti file containing mechanism data (e.g. 'gri30.cti')
+
+OUTPUT:
+    gas = gas object at equilibrium post-shock state
+
+"""
 function PostShock_eq(U1, P1, T1, q, mech)
-    """
-    Calculates equilibrium post-shock state for a specified shock velocity and pre-shock state.
-
-    FUNCTION SYNTAX:
-        gas = PostShock_eq(U1,P1,T1,q,mech)
-
-    INPUT:
-        U1 = shock speed (m/s)
-        P1 = initial pressure (Pa)
-        T1 = initial temperature (K)
-        q = reactant species mole fractions in one of Cantera's recognized formats
-        mech = cti file containing mechanism data (e.g. 'gri30.cti')
-
-    OUTPUT:
-        gas = gas object at equilibrium post-shock state
-
-    """
 
     gas1 = ct.Solution(mech);
     gas  = ct.Solution(mech);
@@ -439,24 +446,25 @@ function PostShock_eq(U1, P1, T1, q, mech)
     gas = shk_eq_calc(U1, gas, gas1, ERRFT, ERRFV)
 end
 
+"""
+    shk_calc(U1, gas, gas1, ERRFT, ERRFV)
 
+Calculates frozen post-shock state using Reynolds' iterative method.
+
+FUNCTION SYNTAX:
+    gas = shk_calc(U1,gas,gas1,ERRFT,ERRFV)
+
+INPUT:
+    U1 = shock speed (m/s)
+    gas = working gas object
+    gas1 = gas object at initial state
+    ERRFT,ERRFV = error tolerances for iteration
+
+OUTPUT:
+    gas = gas object at frozen post-shock state
+
+"""
 function shk_calc(U1, gas, gas1, ERRFT, ERRFV)
-    """
-    Calculates frozen post-shock state using Reynolds' iterative method.
-
-    FUNCTION SYNTAX:
-        gas = shk_calc(U1,gas,gas1,ERRFT,ERRFV)
-
-    INPUT:
-        U1 = shock speed (m/s)
-        gas = working gas object
-        gas1 = gas object at initial state
-        ERRFT,ERRFV = error tolerances for iteration
-
-    OUTPUT:
-        gas = gas object at frozen post-shock state
-
-    """
 
     r1 = gas1.density; V1 = 1/r1
     P1 = gas1.P; T1 = gas1.T
@@ -527,24 +535,25 @@ function shk_calc(U1, gas, gas1, ERRFT, ERRFV)
     return gas
 end
 
+"""
+    shk_eq_calc(U1, gas, gas1, ERRFT, ERRFV)
 
+Calculates equilibrium post-shock state using Reynolds' iterative method.
+
+FUNCTION SYNTAX:
+    gas = shk_calc(U1,gas,gas1,ERRFT,ERRFV)
+
+INPUT:
+    U1 = shock speed (m/s)
+    gas = working gas object
+    gas1 = gas object at initial state
+    ERRFT,ERRFV = error tolerances for iteration
+
+OUTPUT:
+    gas = gas object at equilibrium post-shock state
+
+"""
 function shk_eq_calc(U1, gas, gas1, ERRFT, ERRFV)
-    """
-    Calculates equilibrium post-shock state using Reynolds' iterative method.
-
-    FUNCTION SYNTAX:
-        gas = shk_calc(U1,gas,gas1,ERRFT,ERRFV)
-
-    INPUT:
-        U1 = shock speed (m/s)
-        gas = working gas object
-        gas1 = gas object at initial state
-        ERRFT,ERRFV = error tolerances for iteration
-
-    OUTPUT:
-        gas = gas object at equilibrium post-shock state
-
-    """
 
     r1 = gas1.density; V1 = 1/r1
     P1 = gas1.P; T1 = gas1.T
@@ -616,28 +625,27 @@ function shk_eq_calc(U1, gas, gas1, ERRFT, ERRFV)
     return gas
 end
 
+"""
+    _CJspeed_aeq(P1, T1, q, mech)
 
+CJspeed_aeq
+Calculates CJ detonation velocity and CJ state based on equilibrium sound speed
+
+FUNCTION
+SYNTAX
+cj_speed,gas = CJspeed(P1,T1,q,mech)
+
+INPUT
+P1 = initial pressure (Pa)
+T1 = initial temperature (K)
+q = string of reactant species mole fractions
+mech = cti file containing mechanism data (i.e. 'gri30.cti')
+
+OUTPUT
+cj_speed = CJ detonation speed (m/s)
+
+"""
 function _CJspeed_aeq(P1, T1, q, mech)
-
-    """
-
-    CJspeed_aeq
-    Calculates CJ detonation velocity and CJ state based on equilibrium sound speed
-
-    FUNCTION
-    SYNTAX
-    cj_speed,gas = CJspeed(P1,T1,q,mech)
-
-    INPUT
-    P1 = initial pressure (Pa)
-    T1 = initial temperature (K)
-    q = string of reactant species mole fractions
-    mech = cti file containing mechanism data (i.e. 'gri30.cti')
-
-    OUTPUT
-    cj_speed = CJ detonation speed (m/s)
-
-    """
 
     gas2 = ct.Solution(mech)
     gas1 = ct.Solution(mech)
@@ -736,28 +744,27 @@ function _CJspeed_aeq(P1, T1, q, mech)
     return cj_speed
 end
 
+"""
+    FHFP_CJ2(gas,gas1,gas2)
 
+FHFP_CJ2
+Uses the momentum and energy conservation equations and the equilibrium sound speed to calculate error in current pressure and enthalpy guesses.  In this case, state 2 is in equilibrium.
+
+FUNCTION
+SYNTAX
+[FH,FP,cj_speed] = FHFP_CJ2(gas,gas1,gas2)
+
+INPUT
+gas = working gas object
+gas1 = gas object at initial state
+gas2 = dummy gas object (for calculating numerical derivatives)
+
+OUTPUT
+FH,FP = error in enthalpy and pressure
+cj_speed = CJ detonation speed (m/s)
+
+"""
 function FHFP_CJ2(gas,gas1,gas2)
-
-    """
-
-    FHFP_CJ2
-    Uses the momentum and energy conservation equations and the equilibrium sound speed to calculate error in current pressure and enthalpy guesses.  In this case, state 2 is in equilibrium.
-
-    FUNCTION
-    SYNTAX
-    [FH,FP,cj_speed] = FHFP_CJ2(gas,gas1,gas2)
-
-    INPUT
-    gas = working gas object
-    gas1 = gas object at initial state
-    gas2 = dummy gas object (for calculating numerical derivatives)
-
-    OUTPUT
-    FH,FP = error in enthalpy and pressure
-    cj_speed = CJ detonation speed (m/s)
-
-    """
 
     P1 = gas1.P
     H1 = gas1.enthalpy_mass
@@ -774,25 +781,24 @@ function FHFP_CJ2(gas,gas1,gas2)
     return FH, FP, sqrt(w1s)
 end
 
+"""
+    equilSoundSpeeds(gas)
+
+Calculates equilibrium and frozen sound speeds. For the equilibrium sound speed, the gas is equilibrated holding entropy and specific volume constant.
+
+FUNCTION
+SYNTAX
+[aequil,afrozen] = equilSoundSpeeds(gas)
+
+INPUT
+gas = working gas object (modified inside function)
+
+OUTPUT
+aequil = equilibrium sound speed (m/s)
+afrozen = frozen sound speed (m/s)
+
+"""
 function equilSoundSpeeds(gas)
-
-    """
-
-    equilSoundSpeeds
-    Calculates equilibrium and frozen sound speeds. For the equilibrium sound speed, the gas is equilibrated holding entropy and specific volume constant.
-
-    FUNCTION
-    SYNTAX
-    [aequil,afrozen] = equilSoundSpeeds(gas)
-
-    INPUT
-    gas = working gas object (modified inside function)
-
-    OUTPUT
-    aequil = equilibrium sound speed (m/s)
-    afrozen = frozen sound speed (m/s)
-
-    """
 
     # set the gas to equilibrium at its current T and P
     gas.equilibrate("TP")
@@ -825,28 +831,29 @@ function equilSoundSpeeds(gas)
     return aequil, afrozen
 end
 
+"""
+    _CJspeed_CEA(P1,T1,X1,mech)
+
+This function calculates the CJ-detonation velocity for given initial
+conditions.
+
+It is based on (i.e. mostly copied from) the CJ-detonation part of the
+NASA CEA Fortran95 code, available at
+http://www.grc.nasa.gov/WWW/CEAWeb/ceaHome.htm,
+which itself is based on "Calculation of Detonation Properties and Effect
+of Independent Parameters on Gaseous Detonations" by Frank J. Zeleznik
+and Sanford Gordon, ARS Journal, April 1962.
+
+INPUT:
+P1 = pressure in (Pa)
+T1 = temperature in (K)
+X1 = mole fraction column vector
+mech = file name of kinetic mechanism, e.g. 'gri30.xml'
+
+OUTPUT:
+cj_speed = CJ detonation velocity in (m/s)
+"""
 function _CJspeed_CEA(P1,T1,X1,mech)
-    """
-    This function calculates the CJ-detonation velocity for given initial
-    conditions.
-
-    It is based on (i.e. mostly copied from) the CJ-detonation part of the
-    NASA CEA Fortran95 code, available at
-    http://www.grc.nasa.gov/WWW/CEAWeb/ceaHome.htm,
-    which itself is based on "Calculation of Detonation Properties and Effect
-    of Independent Parameters on Gaseous Detonations" by Frank J. Zeleznik
-    and Sanford Gordon, ARS Journal, April 1962.
-
-    INPUT:
-    P1 = pressure in (Pa)
-    T1 = temperature in (K)
-    X1 = mole fraction column vector
-    mech = file name of kinetic mechanism, e.g. 'gri30.xml'
-
-    OUTPUT:
-    cj_speed = CJ detonation velocity in (m/s)
-    """
-
 
     gas = ct.Solution(mech)
     gas.TPX = T1,P1,X1
@@ -919,14 +926,15 @@ function _CJspeed_CEA(P1,T1,X1,mech)
     return cj_speed
 end
 
+"""
+    partDeriv(T,P,X,gas)
+
+Calculates all needed variables related to partial derivatives, i.e γₛ (isentropic exponent),
+cₚ_eq (equilibrium specific heat at constant pressure), Dlvtp (d ln(v) / d ln(T) at constant
+pressure), Dlvpt (d ln(v) / d ln(P) at constant temperature). Derivatives are approximated
+via central differences.
+"""
 function partDeriv(T,P,X,gas)
-    """
-    Calculates all needed variables related to partial derivatives, i.e
-    γₛ (isentropic exponent), cₚ_eq (equilibrium specific heat at
-    constant pressure), Dlvtp (d ln(v) / d ln(T) at constant pressure),
-    Dlvpt (d ln(v) / d ln(P) at constant temperature). Derivatives are
-    approximated via central differences.
-    """
 
     v = 1/gas.density
     ΔT = T*1e-4
