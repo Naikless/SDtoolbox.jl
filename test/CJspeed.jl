@@ -6,7 +6,11 @@ T₁ = 300
 ϕ = 1
 
 X₁ = "H2:$(42*ϕ), O2:21,N2:79"
-mech = "gri30.yaml"
+try
+    global mech = "gri30.yaml"
+catch PyError
+    global mech = "gri30.xml"
+end
 
 # reference value from online NASA CEA
 V_CJ_ref = 1964.6

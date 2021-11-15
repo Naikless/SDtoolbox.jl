@@ -7,24 +7,28 @@ using Interpolations
 P₁ = 1e5
 T₁ = 300
 
-# for ϕ = 0.5:0.05:1.1
-    ϕ = 1
 
-    X₁ = "H2:$(42*ϕ), O2:21,N2:79"
-    mech = "gri30.xml"
+ϕ = 1
 
-    gas₁ = ct.Solution(mech)
-    gas₁.TPX = T₁,P₁,X₁
+X₁ = "H2:$(42*ϕ), O2:21,N2:79"
+try
+    global mech = "gri30.yaml"
+catch PyError
+    global mech = "gri30.xml"
+end
 
-    U₁ = CJspeed(P₁,T₁,X₁,mech)
+gas₁ = ct.Solution(mech)
+gas₁.TPX = T₁,P₁,X₁
 
-    gas = PostShock_fr(U₁, P₁, T₁, X₁, mech)
+U₁ = CJspeed(P₁,T₁,X₁,mech)
 
-    out = zndsolve(gas,gas₁,U₁,advanced_output=true)
+gas = PostShock_fr(U₁, P₁, T₁, X₁, mech)
 
-    Tplot = plot(out["time"],out["T"])
-    therm_plot = plot(out["time"],out["thermicity"])
-# end
+out = zndsolve(gas,gas₁,U₁,advanced_output=true)
+
+Tplot = plot(out["time"],out["T"])
+therm_plot = plot(out["time"],out["thermicity"])
+
 
 # compare with original sdtoolbox
 pyimport_conda("scipy","scipy")

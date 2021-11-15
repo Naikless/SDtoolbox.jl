@@ -7,19 +7,23 @@ using Interpolations
 P₁ = 2e5
 T₁ = 1500
 
-# for ϕ = 0.5:0.05:1.1
-    ϕ = 1
 
-    X₁ = "H2:$(42*ϕ), O2:21,N2:79"
-    mech = "gri30.xml"
+ϕ = 1
 
-    gas = ct.Solution(mech)
-    gas.TPX = T₁,P₁,X₁
+X₁ = "H2:$(42*ϕ), O2:21,N2:79"
+try
+    global mech = "gri30.yaml"
+catch PyError
+    global mech = "gri30.xml"
+end
 
-    out = cvsolve(gas,t_end=1e-3)
+gas = ct.Solution(mech)
+gas.TPX = T₁,P₁,X₁
 
-    plot!(out["time"],out["T"])
-# end
+out = cvsolve(gas,t_end=1e-3)
+
+plot!(out["time"],out["T"])
+
 
 # compare with original sdtoolbox
 pyimport_conda("scipy","scipy")
