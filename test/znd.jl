@@ -1,5 +1,4 @@
 import SDtoolbox: ct, PostShock_fr, CJspeed, zndsolve, CANTERA_MECH_FILETYPE
-using Plots
 using PyCall
 using StatsBase
 using Interpolations
@@ -22,8 +21,8 @@ gas = PostShock_fr(U₁, P₁, T₁, X₁, mech)
 
 out = zndsolve(gas,gas₁,U₁,advanced_output=true)
 
-Tplot = plot(out["time"],out["T"])
-therm_plot = plot(out["time"],out["thermicity"])
+# Tplot = plot(out["time"],out["T"])
+# therm_plot = plot(out["time"],out["thermicity"])
 
 
 # compare with original sdtoolbox
@@ -33,8 +32,8 @@ pushfirst!(PyVector(pyimport("sys")."path"), @__DIR__)
 zndsolve_py = pyimport("sdtoolbox.znd").zndsolve
 gas = pyimport("sdtoolbox.postshock").PostShock_fr(U₁,P₁,T₁,X₁,mech)
 out_py = zndsolve_py(gas,gas₁,U₁,t_end=out["time"][end])
-plot!(Tplot, out_py["time"],out_py["T"])
-plot!(therm_plot, out_py["time"],out_py["thermicity"])
+# plot!(Tplot, out_py["time"],out_py["T"])
+# plot!(therm_plot, out_py["time"],out_py["thermicity"])
 
 # calculate cross correlation to quantify error
 itp_T = LinearInterpolation(out["time"][1:(end-1)], out["T"][1:(end-1)])

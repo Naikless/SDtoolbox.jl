@@ -1,5 +1,4 @@
 import SDtoolbox: ct, cell_size, CANTERA_MECH_FILETYPE
-using Plots
 
 P₁ = 1e5
 T₁ = 300

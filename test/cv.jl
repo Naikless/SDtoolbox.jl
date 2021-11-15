@@ -1,5 +1,4 @@
 import SDtoolbox: ct, cvsolve, CANTERA_MECH_FILETYPE
-using Plots
 using PyCall
 using StatsBase
 using Interpolations
@@ -18,7 +17,7 @@ gas.TPX = T₁,P₁,X₁
 
 out = cvsolve(gas,t_end=1e-3)
 
-plot!(out["time"],out["T"])
+# plot!(out["time"],out["T"])
 
 
 # compare with original sdtoolbox
@@ -28,7 +27,7 @@ pushfirst!(PyVector(pyimport("sys")."path"), @__DIR__)
 cvsolve_py = pyimport("sdtoolbox.cv").cvsolve
 gas.TPX = T₁,P₁,X₁
 out_py = cvsolve_py(gas,t_end=out["time"][end])
-plot!(out_py["time"],out_py["T"])
+# plot!(out_py["time"],out_py["T"])
 
 # calculate cross correlation to quantify error
 itp = LinearInterpolation(out["time"][1:(end-1)], out["T"][1:(end-1)])
