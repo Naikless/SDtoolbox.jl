@@ -8,7 +8,7 @@ T₁ = 300
 X₁ = "H2:$(42*ϕ), O2:21,N2:79"
 try
     global mech = "gri30.yaml"
-catch PyError
+catch LoadError
     global mech = "gri30.xml"
 end
 
