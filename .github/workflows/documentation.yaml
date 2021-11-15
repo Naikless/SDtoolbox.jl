@@ -17,8 +17,7 @@ jobs:
         with:
           version: '1.6'
       - name: Install dependencies
-      - run: julia -e "import Pkg; Pkg.add(\"PyCall\")"
-      - run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.build("SDtoolbox"); Pkg.instantiate()'
+        run: julia -e "import Pkg; Pkg.add(\"PyCall\")"; julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.build("SDtoolbox");'
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token

@@ -20,6 +20,13 @@ const ct = PyNULL()
 function __init__()
     # load cantera python package
     copy!(ct, pyimport_conda("cantera","cantera","cantera"))
+
+    # use xml mech files in tests for cantera before v2.5, otherwise yaml
+    if VersionNumber(ct.__version__) < v"2.5"
+        global CANTERA_MECH_FILETYPE = "xml"
+    else
+        global CANTERA_MECH_FILETYPE = "yaml"
+    end
 end
 
 include("cell_size.jl")

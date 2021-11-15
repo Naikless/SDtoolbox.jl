@@ -1,4 +1,4 @@
-import SDtoolbox: ct, PostShock_fr, CJspeed, zndsolve
+import SDtoolbox: ct, PostShock_fr, CJspeed, zndsolve, CANTERA_MECH_FILETYPE
 using Plots
 using PyCall
 using StatsBase
@@ -11,11 +11,7 @@ T₁ = 300
 ϕ = 1
 
 X₁ = "H2:$(42*ϕ), O2:21,N2:79"
-try
-    global mech = "gri30.yaml"
-catch LoadError
-    global mech = "gri30.xml"
-end
+mech = "gri30."*CANTERA_MECH_FILETYPE
 
 gas₁ = ct.Solution(mech)
 gas₁.TPX = T₁,P₁,X₁

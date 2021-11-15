@@ -1,4 +1,4 @@
-import SDtoolbox: CJspeed
+import SDtoolbox: CJspeed, CANTERA_MECH_FILETYPE
 using Plots
 
 P₁ = 1e5
@@ -6,11 +6,7 @@ T₁ = 300
 ϕ = 1
 
 X₁ = "H2:$(42*ϕ), O2:21,N2:79"
-try
-    global mech = "gri30.yaml"
-catch LoadError
-    global mech = "gri30.xml"
-end
+mech = "gri30."*CANTERA_MECH_FILETYPE
 
 # reference value from online NASA CEA
 V_CJ_ref = 1964.6
