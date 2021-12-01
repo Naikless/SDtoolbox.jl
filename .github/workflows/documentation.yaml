@@ -11,13 +11,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env: 
+      PYTHON: ""
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/setup-julia@v1
         with:
           version: '1.6'
-      - name: Install dependencies
-        run: julia -e "import Pkg; Pkg.add(\"PyCall\")"; julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.build("SDtoolbox");'
+      - name: Build package
+        uses: julia-actions/julia-buildpkg@v1
+      - run: julia -e 'import Pkg; Pkg.add("PyCall"); import PyCall; PyCall.pyimport_conda("cantera","cantera","cantera")'
+      - name: Intall dependencies
+        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
