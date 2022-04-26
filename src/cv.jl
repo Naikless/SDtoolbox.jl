@@ -155,7 +155,7 @@ function cvsolve(gas::PyObject;t_end::Real=1e-6,max_step::Real=1e-5,
 
     @time begin
         # Benchmarks needed for: abstol, reltol, Algos: Rosenbrock23, RadauIIA5, Rodas4
-        out = solve(prob,Rosenbrock23(autodiff=false),progress=true,callback=cb,abtol=absTol,reltol=relTol)
+        out = solve(prob,Rosenbrock23(autodiff=false),progress=true,callback=cb,abstol=absTol,reltol=relTol)
     end
 
     output = create_output_dict(out,gas)

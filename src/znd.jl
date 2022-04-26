@@ -298,7 +298,7 @@ function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
 
     @time begin
         # Benchmarks needed for: abstol, reltol, Algos: Rosenbrock23, RadauIIA5, Rodas4
-        out = solve(prob,solver_algorithm(autodiff=false),progress=true,callback=cb,abtol=absTol,reltol=relTol)
+        out = solve(prob,solver_algorithm(autodiff=false),progress=true,callback=cb,abstol=absTol,reltol=relTol)
     end
 
     create_output_dict(out,gas,advanced_output)
