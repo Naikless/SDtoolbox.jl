@@ -1,14 +1,14 @@
 name = "SDtoolbox"
 uuid = "5bc79f6f-357f-4b0b-8579-c2462dcf5d50"
 authors = ["Niclas Garan"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 
 [compat]
-OrdinaryDiffEq = "5"
+OrdinaryDiffEq = "5,6"
 PyCall = "1"
 julia = "1"
 
