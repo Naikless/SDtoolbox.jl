@@ -43,7 +43,7 @@ out = zndsolve(gas,gas₁,U₁,advanced_output=true)
 
 # Future improvements
 
-Since code transfer to Julia is done gradually and there is currently no direct Julia interface for [Cantera](https://cantera.org/), this package heavily relies on [PyCall](https://github.com/JuliaPy/PyCall.jl). This results in all of the cantera calls to be the most obvious remaining performance bottlenecks, although speedups compared to the pure Python interpretation of the sdtoolbox can still be quite significant. 
+Since code transfer to Julia is done gradually and there is currently no direct Julia interface for [Cantera](https://cantera.org/), this package heavily relies on [PyCall](https://github.com/JuliaPy/PyCall.jl). This results in all of the cantera calls to be the most obvious remaining performance bottlenecks, although speedups compared to the pure Python implementation of the sdtoolbox can still be quite significant. 
 
 Possible solutions for this could be:
  - Wait until there is a native Julia interface for Cantera
