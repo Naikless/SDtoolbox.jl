@@ -26,7 +26,7 @@ out = zndsolve(gas,gas₁,U₁,advanced_output=true)
 
 
 # compare with original sdtoolbox
-pyimport_conda("scipy","scipy")
+pyimport_conda("scipy","scipy<=1.8")
 pyimport_conda("matplotlib","matplotlib")
 pushfirst!(PyVector(pyimport("sys")."path"), @__DIR__)
 zndsolve_py = pyimport("sdtoolbox.znd").zndsolve

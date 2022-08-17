@@ -21,7 +21,7 @@ out = cvsolve(gas,t_end=1e-3)
 
 
 # compare with original sdtoolbox
-pyimport_conda("scipy","scipy")
+pyimport_conda("scipy","scipy<=1.8")
 pyimport_conda("matplotlib","matplotlib")
 pushfirst!(PyVector(pyimport("sys")."path"), @__DIR__)
 cvsolve_py = pyimport("sdtoolbox.cv").cvsolve
