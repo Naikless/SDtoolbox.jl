@@ -11,6 +11,9 @@ using SDtoolbox, Test
     include("znd.jl")
     @test err_T > 0.99 && err_therm > 0.99
 
-    include("cell_size.jl")
+    include("dynamics.jl")
     @test 9e-3 <= λ <= 10e-3
+    @test 3.8 <= θₑ_ <= 4.5
+    @test 1.3 <= Λ_ <= 4.1
+    @test 6 <= χ_ <= 16
 end

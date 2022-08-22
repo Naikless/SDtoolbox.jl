@@ -1,6 +1,6 @@
 module SDtoolbox
 
-export zndsolve, cvsolve, cell_size, CJspeed, PostShock_eq, PostShock_fr
+export zndsolve, cvsolve, θₑ, Λ, χ, cell_size, CJspeed, PostShock_eq, PostShock_fr
 
 include("postshock.jl")
 include("cv.jl")
@@ -29,6 +29,6 @@ function __init__()
     end
 end
 
-include("cell_size.jl")
+include("dynamics.jl")
 
 end
