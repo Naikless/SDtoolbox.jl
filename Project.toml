@@ -1,7 +1,7 @@
 name = "SDtoolbox"
 uuid = "5bc79f6f-357f-4b0b-8579-c2462dcf5d50"
 authors = ["Niclas Garan"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
