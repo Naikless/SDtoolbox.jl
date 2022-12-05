@@ -52,7 +52,15 @@ function Λ(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwargs...)
     Λ(cj_speed,T₁,P₁,X₁,mech;kwargs...)
 end
 
-function Λ(cj_speed,T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwargs...)
+function Λ(znd_out::AbstractDict)
+
+    tᵢ = znd_out["ind_time_ZND"]
+    tᵣ = 1/znd_out["max_thermicity_ZND"]
+
+    Λ = tᵢ/tᵣ
+end
+
+function Λ(cj_speed::Number,T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwargs...)
 
     # Set up gas object for initial conditions
     gas₁ = ct.Solution(mech)
@@ -62,11 +70,8 @@ function Λ(cj_speed,T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwa
     gas = PostShock_fr(cj_speed, P₁, T₁, X₁, mech)
 
     # Solve ZND ODEs
-    out = zndsolve(gas,gas₁,cj_speed,advanced_output=true;kwargs...)
-    tᵢ = out["ind_time_ZND"]
-    tᵣ = 1/out["max_thermicity_ZND"]
-
-    Λ = tᵢ/tᵣ
+    znd_out = zndsolve(gas,gas₁,cj_speed,advanced_output=true;kwargs...)
+    Λ_ = Λ(znd_out)
 end
 
 function χ(T₁,P₁,X₁::Union{AbstractString,AbstractDict},mech;kwargs...)
