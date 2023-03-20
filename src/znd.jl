@@ -36,14 +36,8 @@ using OrdinaryDiffEq
 using PyCall
 
 
-const ct = PyNULL()
 
-function __init__()
-    copy!(ct, pyimport_conda("cantera","cantera","cantera"))
-    global R̄ = ct.gas_constant
-end
-
-
+const global R̄ = 8314.46261815324
 U1 = nothing
 gas1 = nothing
 ρ₁ = nothing
@@ -116,7 +110,7 @@ OUTPUT:
 function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Float64}
 
     # current gas state and constant parameters
-    gas::PyObject,U₁::Real,ρ₁::Real,Mᵢ::Vector{Float64} = params[1:4]
+    gas::PyObject,U₁::Float64,ρ₁::Float64,Mᵢ::Vector{Float64} = params[1:4]
 
     # make sure physical bounds are respected to avoid cantera errors
     if !any(y[1:2].<=0)
@@ -153,7 +147,7 @@ function znd!(dy::Vector{Float64},y::Vector{Float64},params,t::Real)::Vector{Flo
 
     # σ̇  = getThermicity(gas)
     # calculating thermicity directly saves some PyCalls
-    hₛ_RT = gas.standard_enthalpies_RT
+    hₛ_RT = gas.standard_enthalpies_RT::Vector{Float64}
     hₛ = hₛ_RT .* R̄ .* T ./ Mᵢ
     cₚ = gas.cp_mass::Float64
     σ̇  = sum((M̄./Mᵢ .- hₛ./(cₚ * T)) .* Ẏ)
@@ -278,7 +272,7 @@ function zndsolve(gas::PyObject,gas₁::PyObject,U₁::Real;
 
     global Mᵢ = gas.molecular_weights::Vector{Float64}
 
-    params = [gas,U₁,ρ₁,Mᵢ,0.]
+    params = [gas,float(U₁),ρ₁,Mᵢ,0.]
 
     tel = [0.,t_end] # Timespan
 
